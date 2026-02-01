@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Moon, Sun, Globe, GraduationCap } from 'lucide-react';
+import { Menu, X, Moon, Sun, Globe, GraduationCap, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const navLinks = [
   { key: 'nav.home', href: '/' },
@@ -18,6 +19,8 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t, language, toggleLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
@@ -112,13 +115,31 @@ export function Navbar() {
               )}
             </Button>
 
-            {/* Login Button */}
-            <Button variant="ghost" className="hidden sm:flex">
-              {t('nav.login')}
-            </Button>
+            {/* Login/Dashboard Button */}
+            {user ? (
+              <Button 
+                variant="ghost" 
+                className="hidden sm:flex"
+                onClick={() => navigate('/dashboard')}
+              >
+                <User className="w-4 h-4 mr-2" />
+                {language === 'en' ? 'Dashboard' : 'Dashboard'}
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="hidden sm:flex"
+                onClick={() => navigate('/auth')}
+              >
+                {t('nav.login')}
+              </Button>
+            )}
 
             {/* CTA Button */}
-            <Button className="hidden md:flex bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button 
+              className="hidden md:flex bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={() => navigate(user ? '/courses' : '/auth')}
+            >
               {t('nav.enroll')}
             </Button>
 
@@ -189,10 +210,28 @@ export function Navbar() {
               </div>
 
               <div className="flex flex-col gap-3 pt-4">
-                <Button variant="outline" className="w-full">
-                  {t('nav.login')}
-                </Button>
-                <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+                {user ? (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    {language === 'en' ? 'Dashboard' : 'Dashboard'}
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate('/auth')}
+                  >
+                    {t('nav.login')}
+                  </Button>
+                )}
+                <Button 
+                  className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                  onClick={() => navigate(user ? '/courses' : '/auth')}
+                >
                   {t('nav.enroll')}
                 </Button>
               </div>
