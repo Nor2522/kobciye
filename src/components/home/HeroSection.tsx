@@ -4,6 +4,7 @@ import { Search, Users, ArrowRight, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 const avatars = [
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces',
@@ -14,6 +15,7 @@ const avatars = [
 
 export function HeroSection() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
@@ -65,7 +67,11 @@ export function HeroSection() {
                   className="pl-12 h-14 text-base rounded-xl border-2 border-border focus:border-accent"
                 />
               </div>
-              <Button size="lg" className="h-14 px-8 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl">
+              <Button 
+                size="lg" 
+                className="h-14 px-8 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl"
+                onClick={() => navigate('/courses')}
+              >
                 {t('hero.browse')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
