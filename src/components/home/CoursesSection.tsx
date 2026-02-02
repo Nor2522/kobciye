@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import { ArrowRight, Clock, User, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Course, getCategoryColor } from '@/lib/courses';
 import { CourseDetailModal } from '@/components/courses/CourseDetailModal';
+import { EnrollmentModal } from '@/components/dashboard/EnrollmentModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 function CourseCard({ 
   course, 
@@ -98,12 +99,14 @@ export function CoursesSection() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -131,12 +134,22 @@ export function CoursesSection() {
   };
 
   const handleEnroll = (course: Course) => {
+    setIsModalOpen(false);
     if (!user) {
       navigate('/auth');
     } else {
-      navigate('/courses');
+      setSelectedCourse(course);
+      setIsEnrollmentModalOpen(true);
     }
-    setIsModalOpen(false);
+  };
+
+  const handleEnrollmentSuccess = () => {
+    toast({
+      title: language === 'en' ? 'Success!' : 'Guul!',
+      description: language === 'en' 
+        ? 'You have been enrolled. Check your dashboard!'
+        : 'Waad is diiwaangelisay. Eeg dashboard-kaaga!',
+    });
   };
 
   return (
@@ -193,6 +206,13 @@ export function CoursesSection() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onEnroll={handleEnroll}
+      />
+
+      <EnrollmentModal
+        course={selectedCourse}
+        isOpen={isEnrollmentModalOpen}
+        onClose={() => setIsEnrollmentModalOpen(false)}
+        onSuccess={handleEnrollmentSuccess}
       />
     </section>
   );
