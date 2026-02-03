@@ -216,7 +216,12 @@ export default function Dashboard() {
                       </span>
                     </Button>
                     {isAdmin() && (
-                      <Button variant="outline" size="sm" className="gap-2 border-purple-500 text-purple-600 hover:bg-purple-50">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 border-purple-500 text-purple-600 hover:bg-purple-50"
+                        onClick={() => navigate('/admin')}
+                      >
                         <Shield className="w-4 h-4" />
                         <span className="hidden sm:inline">
                           {language === 'en' ? 'Admin Panel' : 'Maamulka'}
