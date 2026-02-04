@@ -66,6 +66,9 @@ export type Database = {
           title: string
           title_so: string | null
           updated_at: string
+          video_source: string | null
+          video_thumbnail: string | null
+          video_url: string | null
         }
         Insert: {
           category: string
@@ -88,6 +91,9 @@ export type Database = {
           title: string
           title_so?: string | null
           updated_at?: string
+          video_source?: string | null
+          video_thumbnail?: string | null
+          video_url?: string | null
         }
         Update: {
           category?: string
@@ -110,6 +116,9 @@ export type Database = {
           title?: string
           title_so?: string | null
           updated_at?: string
+          video_source?: string | null
+          video_thumbnail?: string | null
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -150,6 +159,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       password_reset_requests: {
         Row: {
