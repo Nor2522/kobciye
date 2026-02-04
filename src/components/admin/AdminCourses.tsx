@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit, Trash2, Eye, EyeOff, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, MoreHorizontal, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +54,9 @@ interface CourseFormData {
   level_so: string;
   price: number;
   image_url: string;
+  video_url: string;
+  video_source: string;
+  video_thumbnail: string;
   is_online: boolean;
   is_published: boolean;
 }
@@ -71,9 +74,25 @@ const initialFormData: CourseFormData = {
   level_so: 'Bilowga',
   price: 0,
   image_url: '',
+  video_url: '',
+  video_source: 'none',
+  video_thumbnail: '',
   is_online: true,
   is_published: false,
 };
+
+// Helper to extract YouTube video ID from various URL formats
+function extractYouTubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    /youtube\.com\/shorts\/([^&\n?#]+)/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
 
 export function AdminCourses() {
   const { language } = useLanguage();
@@ -114,6 +133,7 @@ export function AdminCourses() {
   const handleOpenDialog = (course?: Course) => {
     if (course) {
       setEditingCourse(course);
+      const courseData = course as any; // Handle potential new fields
       setFormData({
         title: course.title,
         title_so: course.title_so || '',
@@ -127,6 +147,9 @@ export function AdminCourses() {
         level_so: course.level_so || 'Bilowga',
         price: course.price,
         image_url: course.image_url || '',
+        video_url: courseData.video_url || '',
+        video_source: courseData.video_source || 'none',
+        video_thumbnail: courseData.video_thumbnail || '',
         is_online: course.is_online,
         is_published: course.is_published,
       });
@@ -465,12 +488,76 @@ export function AdminCourses() {
             </div>
 
             <div className="space-y-2">
-              <Label>{language === 'en' ? 'Image URL' : 'URL Sawirka'}</Label>
+              <Label>{language === 'en' ? 'Thumbnail Image URL' : 'URL Sawirka Thumbnail'}</Label>
               <Input
                 placeholder="https://..."
                 value={formData.image_url}
                 onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
               />
+            </div>
+
+            {/* Video Source Selection */}
+            <div className="space-y-3 p-4 border border-border rounded-lg">
+              <Label className="text-base font-semibold">
+                {language === 'en' ? 'Course Video' : 'Fiidiyowga Koorsada'}
+              </Label>
+              
+              <div className="space-y-2">
+                <Label>{language === 'en' ? 'Video Source' : 'Isha Fiidiyowga'}</Label>
+                <Select
+                  value={formData.video_source}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, video_source: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{language === 'en' ? 'No Video' : 'Fiidiyow ma jiro'}</SelectItem>
+                    <SelectItem value="youtube">{language === 'en' ? 'YouTube Video' : 'Fiidiyow YouTube'}</SelectItem>
+                    <SelectItem value="upload">{language === 'en' ? 'Direct Video URL' : 'URL Toos ah'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.video_source !== 'none' && (
+                <>
+                  <div className="space-y-2">
+                    <Label>
+                      {formData.video_source === 'youtube' 
+                        ? (language === 'en' ? 'YouTube Video URL' : 'URL Fiidiyowga YouTube')
+                        : (language === 'en' ? 'Video File URL' : 'URL Faylka Fiidiyowga')}
+                    </Label>
+                    <Input
+                      placeholder={formData.video_source === 'youtube' 
+                        ? "https://www.youtube.com/watch?v=..." 
+                        : "https://example.com/video.mp4"}
+                      value={formData.video_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
+                    />
+                    {formData.video_source === 'youtube' && formData.video_url && (
+                      <p className="text-xs text-muted-foreground">
+                        {extractYouTubeId(formData.video_url) 
+                          ? `✓ ${language === 'en' ? 'Valid YouTube URL detected' : 'URL YouTube sax ah la helay'}`
+                          : `✗ ${language === 'en' ? 'Invalid YouTube URL' : 'URL YouTube aan saxnayn'}`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{language === 'en' ? 'Video Thumbnail URL (Optional)' : 'URL Sawirka Fiidiyowga (Ikhtiyaari)'}</Label>
+                    <Input
+                      placeholder="https://..."
+                      value={formData.video_thumbnail}
+                      onChange={(e) => setFormData(prev => ({ ...prev, video_thumbnail: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {language === 'en' 
+                        ? 'Custom thumbnail for the video. For YouTube, auto-generated if left empty.'
+                        : 'Sawir gaar ah ee fiidiyowga. YouTube, auto-generated haddii madhan.'}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-6">

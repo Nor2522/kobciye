@@ -11,8 +11,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Course, getCategoryColor } from '@/lib/courses';
 import { CourseDetailModal } from '@/components/courses/CourseDetailModal';
+import { EnrollmentModal } from '@/components/dashboard/EnrollmentModal';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const categories = [
   { en: 'All', so: 'Dhammaan' },
@@ -26,6 +28,7 @@ export default function Courses() {
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +36,7 @@ export default function Courses() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -68,12 +72,22 @@ export default function Courses() {
   };
 
   const handleEnroll = (course: Course) => {
+    setIsModalOpen(false);
     if (!user) {
       navigate('/auth');
     } else {
-      navigate(`/checkout/${course.id}`);
+      setSelectedCourse(course);
+      setIsEnrollmentModalOpen(true);
     }
-    setIsModalOpen(false);
+  };
+
+  const handleEnrollmentSuccess = () => {
+    toast({
+      title: language === 'en' ? 'Success!' : 'Guul!',
+      description: language === 'en' 
+        ? 'You have been enrolled. Check your dashboard!'
+        : 'Waad is diiwaangelisay. Eeg dashboard-kaaga!',
+    });
   };
 
   return (
@@ -198,6 +212,13 @@ export default function Courses() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onEnroll={handleEnroll}
+      />
+
+      <EnrollmentModal
+        course={selectedCourse}
+        isOpen={isEnrollmentModalOpen}
+        onClose={() => setIsEnrollmentModalOpen(false)}
+        onSuccess={handleEnrollmentSuccess}
       />
     </div>
   );

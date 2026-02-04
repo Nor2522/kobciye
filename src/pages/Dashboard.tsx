@@ -18,6 +18,10 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Navbar } from '@/components/layout/Navbar';
+import { NotificationsModal } from '@/components/dashboard/NotificationsModal';
+import { SettingsModal } from '@/components/dashboard/SettingsModal';
+import { AppointmentModal } from '@/components/dashboard/AppointmentModal';
+import { CertificatesModal } from '@/components/dashboard/CertificatesModal';
 
 interface Enrollment {
   id: string;
@@ -50,7 +54,15 @@ export default function Dashboard() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [appointmentsCount, setAppointmentsCount] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(true);
+  
+  // Modal states
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAppointment, setShowAppointment] = useState(false);
+  const [showCertificates, setShowCertificates] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -105,6 +117,23 @@ export default function Dashboard() {
       }));
       
       setEnrollments(typedEnrollments);
+
+      // Fetch appointments count
+      const { count: appointmentCount } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id);
+      
+      setAppointmentsCount(appointmentCount || 0);
+
+      // Fetch unread notifications count
+      const { count: notifCount } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .eq('is_read', false);
+      
+      setUnreadNotifications(notifCount || 0);
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -161,6 +190,7 @@ export default function Dashboard() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-secondary/20">
       <Navbar />
       
@@ -203,13 +233,28 @@ export default function Dashboard() {
 
                   {/* Quick Actions */}
                   <div className="flex flex-wrap gap-2 sm:gap-3">
-                    <Button variant="outline" size="sm" className="gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2 relative"
+                      onClick={() => setShowNotifications(true)}
+                    >
                       <Bell className="w-4 h-4" />
+                      {unreadNotifications > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                          {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                        </span>
+                      )}
                       <span className="hidden sm:inline">
                         {language === 'en' ? 'Notifications' : 'Ogeysiisyo'}
                       </span>
                     </Button>
-                    <Button variant="outline" size="sm" className="gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-2"
+                      onClick={() => setShowSettings(true)}
+                    >
                       <Settings className="w-4 h-4" />
                       <span className="hidden sm:inline">
                         {language === 'en' ? 'Settings' : 'Qaabeynta'}
@@ -316,7 +361,7 @@ export default function Dashboard() {
                   <Calendar className="w-6 h-6 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{appointmentsCount}</p>
                   <p className="text-xs text-muted-foreground">
                     {language === 'en' ? 'Appointments' : 'Ballamo'}
                   </p>
@@ -458,11 +503,19 @@ export default function Dashboard() {
                     <CreditCard className="w-4 h-4 mr-3" />
                     {language === 'en' ? 'Buy Credits' : 'Iibso Credits'}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start h-11">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start h-11"
+                    onClick={() => setShowAppointment(true)}
+                  >
                     <Calendar className="w-4 h-4 mr-3" />
                     {language === 'en' ? 'Book Appointment' : 'Ballanse'}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start h-11">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start h-11"
+                    onClick={() => setShowCertificates(true)}
+                  >
                     <Award className="w-4 h-4 mr-3" />
                     {language === 'en' ? 'View Certificates' : 'Eeg Shahaadooyinka'}
                   </Button>
@@ -513,5 +566,30 @@ export default function Dashboard() {
         </div>
       </main>
     </div>
+
+      {/* Modals */}
+      <NotificationsModal 
+        isOpen={showNotifications} 
+        onClose={() => {
+          setShowNotifications(false);
+          // Refresh unread count
+          fetchUserData();
+        }} 
+      />
+      <SettingsModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)}
+        onProfileUpdate={fetchUserData}
+      />
+      <AppointmentModal 
+        isOpen={showAppointment} 
+        onClose={() => setShowAppointment(false)}
+        onSuccess={fetchUserData}
+      />
+      <CertificatesModal 
+        isOpen={showCertificates} 
+        onClose={() => setShowCertificates(false)} 
+      />
+    </>
   );
 }

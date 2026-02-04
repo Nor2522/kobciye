@@ -13,6 +13,9 @@ export interface Course {
   level_so: string | null;
   price: number;
   image_url: string | null;
+  video_url?: string | null;
+  video_source?: string | null;
+  video_thumbnail?: string | null;
   is_online: boolean;
   is_published: boolean;
   rating: number;
