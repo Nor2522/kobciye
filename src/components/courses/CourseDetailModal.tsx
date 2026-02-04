@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, User, Star, Users, BookOpen, CheckCircle, DollarSign } from 'lucide-react';
+import { X, Clock, User, Star, Users, BookOpen, CheckCircle, DollarSign, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Course, getCategoryColor } from '@/lib/courses';
+import { CourseVideoPlayer } from './CourseVideoPlayer';
 import {
   Dialog,
   DialogContent,
@@ -51,25 +52,46 @@ export function CourseDetailModal({ course, isOpen, onClose, onEnroll }: CourseD
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
-        {/* Course Image */}
-        <div className="relative h-48 sm:h-64 overflow-hidden">
-          <img
-            src={course.image_url || '/placeholder.svg'}
-            alt={title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4">
-            <Badge className={`${getCategoryColor(course.category)} text-white border-0 mb-2`}>
-              {category}
-            </Badge>
-            <DialogHeader>
-              <DialogTitle className="text-xl sm:text-2xl font-bold text-white text-left">
-                {title}
-              </DialogTitle>
-            </DialogHeader>
+        {/* Course Image or Video */}
+        {course.video_url && course.video_source && course.video_source !== 'none' ? (
+          <div className="relative overflow-hidden">
+            <CourseVideoPlayer
+              videoUrl={course.video_url}
+              videoSource={course.video_source}
+              thumbnailUrl={course.video_thumbnail}
+              title={title}
+            />
+            <div className="p-4 bg-gradient-to-t from-background via-background/80 to-transparent -mt-16 relative z-10">
+              <Badge className={`${getCategoryColor(course.category)} text-white border-0 mb-2`}>
+                {category}
+              </Badge>
+              <DialogHeader>
+                <DialogTitle className="text-xl sm:text-2xl font-bold text-left">
+                  {title}
+                </DialogTitle>
+              </DialogHeader>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="relative h-48 sm:h-64 overflow-hidden">
+            <img
+              src={course.image_url || '/placeholder.svg'}
+              alt={title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4">
+              <Badge className={`${getCategoryColor(course.category)} text-white border-0 mb-2`}>
+                {category}
+              </Badge>
+              <DialogHeader>
+                <DialogTitle className="text-xl sm:text-2xl font-bold text-white text-left">
+                  {title}
+                </DialogTitle>
+              </DialogHeader>
+            </div>
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
