@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   BookOpen, Users, GraduationCap, Wallet, TrendingUp, 
-  ArrowUpRight, ArrowDownRight
+  Video, Calendar, BarChart3, Plus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,10 +16,14 @@ interface Stats {
   totalEnrollments: number;
   activeEnrollments: number;
   totalCredits: number;
+  totalPlaylists: number;
+  totalVideos: number;
+  pendingBookings: number;
 }
 
 export function AdminOverview() {
   const { language } = useLanguage();
+  const [, setSearchParams] = useSearchParams();
   const [stats, setStats] = useState<Stats>({
     totalCourses: 0,
     publishedCourses: 0,
@@ -25,6 +31,9 @@ export function AdminOverview() {
     totalEnrollments: 0,
     activeEnrollments: 0,
     totalCredits: 0,
+    totalPlaylists: 0,
+    totalVideos: 0,
+    pendingBookings: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -34,14 +43,22 @@ export function AdminOverview() {
 
   async function fetchStats() {
     try {
-      // Fetch courses stats
-      const { data: courses } = await supabase.from('courses').select('id, is_published');
-      
-      // Fetch users stats
-      const { data: profiles } = await supabase.from('profiles').select('id, credits');
-      
-      // Fetch enrollments stats
-      const { data: enrollments } = await supabase.from('enrollments').select('id, status');
+      // Fetch all stats in parallel
+      const [
+        { data: courses },
+        { data: profiles },
+        { data: enrollments },
+        { count: playlistCount },
+        { count: videoCount },
+        { count: pendingBookingsCount },
+      ] = await Promise.all([
+        supabase.from('courses').select('id, is_published'),
+        supabase.from('profiles').select('id, credits'),
+        supabase.from('enrollments').select('id, status'),
+        supabase.from('playlists').select('*', { count: 'exact', head: true }),
+        supabase.from('videos').select('*', { count: 'exact', head: true }),
+        supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
 
       setStats({
         totalCourses: courses?.length || 0,
@@ -50,6 +67,9 @@ export function AdminOverview() {
         totalEnrollments: enrollments?.length || 0,
         activeEnrollments: enrollments?.filter(e => e.status === 'active').length || 0,
         totalCredits: profiles?.reduce((sum, p) => sum + (p.credits || 0), 0) || 0,
+        totalPlaylists: playlistCount || 0,
+        totalVideos: videoCount || 0,
+        pendingBookings: pendingBookingsCount || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -57,6 +77,10 @@ export function AdminOverview() {
       setLoading(false);
     }
   }
+
+  const navigateToTab = (tab: string) => {
+    setSearchParams({ tab });
+  };
 
   const statCards = [
     {
@@ -90,6 +114,24 @@ export function AdminOverview() {
       subtitle: language === 'en' ? 'In circulation' : 'Wareegaya',
       icon: Wallet,
       color: 'bg-orange-500/10 text-orange-500',
+    },
+  ];
+
+  const secondaryStats = [
+    {
+      title: language === 'en' ? 'Playlists' : 'Playlists',
+      value: stats.totalPlaylists,
+      icon: Video,
+    },
+    {
+      title: language === 'en' ? 'Videos' : 'Fiidiyowyada',
+      value: stats.totalVideos,
+      icon: TrendingUp,
+    },
+    {
+      title: language === 'en' ? 'Pending Bookings' : 'Ballamo Sugaya',
+      value: stats.pendingBookings,
+      icon: Calendar,
     },
   ];
 
@@ -127,6 +169,21 @@ export function AdminOverview() {
         ))}
       </div>
 
+      {/* Secondary Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {secondaryStats.map((stat, index) => (
+          <Card key={index} className="border-0 shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <stat.icon className="w-5 h-5 text-muted-foreground" />
+              <div>
+                <p className="text-xl font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.title}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       {/* Quick Actions */}
       <Card className="border-0 shadow-md">
         <CardHeader>
@@ -138,11 +195,14 @@ export function AdminOverview() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <Card 
+              className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => navigateToTab('courses')}
+            >
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-primary" />
+                  <Plus className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="font-medium">{language === 'en' ? 'Add Course' : 'Koorso Cusub'}</p>
@@ -152,7 +212,26 @@ export function AdminOverview() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors">
+            <Card 
+              className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => navigateToTab('playlists')}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Video className="w-5 h-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="font-medium">{language === 'en' ? 'Upload Videos' : 'Soo Geli Fiidiyowyada'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'en' ? 'Add course content' : 'Dar nuxurka koorsada'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card 
+              className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => navigateToTab('users')}
+            >
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                   <Users className="w-5 h-5 text-blue-500" />
@@ -165,10 +244,31 @@ export function AdminOverview() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors">
+            <Card 
+              className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => navigateToTab('bookings')}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="font-medium">{language === 'en' ? 'Bookings' : 'Ballannimo'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.pendingBookings > 0 
+                      ? `${stats.pendingBookings} ${language === 'en' ? 'pending' : 'sugaya'}`
+                      : language === 'en' ? 'View all' : 'Eeg dhammaan'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card 
+              className="border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => navigateToTab('reports')}
+            >
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-accent" />
+                  <BarChart3 className="w-5 h-5 text-accent" />
                 </div>
                 <div>
                   <p className="font-medium">{language === 'en' ? 'View Reports' : 'Eeg Warbixinaha'}</p>
