@@ -214,6 +214,50 @@ export type Database = {
         }
         Relationships: []
       }
+      playlists: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          description_so: string | null
+          id: string
+          order_index: number
+          title: string
+          title_so: string | null
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          description_so?: string | null
+          id?: string
+          order_index?: number
+          title: string
+          title_so?: string | null
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          description_so?: string | null
+          id?: string
+          order_index?: number
+          title?: string
+          title_so?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlists_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -247,6 +291,94 @@ export type Database = {
         }
         Relationships: []
       }
+      transcoding_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          input_url: string
+          output_url: string | null
+          started_at: string | null
+          status: string
+          video_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_url: string
+          output_url?: string | null
+          started_at?: string | null
+          status?: string
+          video_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_url?: string
+          output_url?: string | null
+          started_at?: string | null
+          status?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transcoding_jobs_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          last_position_seconds: number
+          updated_at: string
+          user_id: string
+          video_id: string
+          watched_percentage: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          last_position_seconds?: number
+          updated_at?: string
+          user_id: string
+          video_id: string
+          watched_percentage?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          last_position_seconds?: number
+          updated_at?: string
+          user_id?: string
+          video_id?: string
+          watched_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -271,12 +403,75 @@ export type Database = {
         }
         Relationships: []
       }
+      videos: {
+        Row: {
+          created_at: string
+          description: string | null
+          description_so: string | null
+          duration_seconds: number | null
+          id: string
+          is_free: boolean
+          order_index: number
+          playlist_id: string
+          thumbnail_url: string | null
+          title: string
+          title_so: string | null
+          updated_at: string
+          video_source: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          description_so?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_free?: boolean
+          order_index?: number
+          playlist_id: string
+          thumbnail_url?: string | null
+          title: string
+          title_so?: string | null
+          updated_at?: string
+          video_source?: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          description_so?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_free?: boolean
+          order_index?: number
+          playlist_id?: string
+          thumbnail_url?: string | null
+          title?: string
+          title_so?: string | null
+          updated_at?: string
+          video_source?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       enroll_with_credits: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: Json
+      }
+      get_course_progress: {
         Args: { _course_id: string; _user_id: string }
         Returns: Json
       }
@@ -290,6 +485,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_video_progress: {
+        Args: {
+          _last_position_seconds: number
+          _user_id: string
+          _video_id: string
+          _watched_percentage: number
+        }
+        Returns: Json
       }
     }
     Enums: {

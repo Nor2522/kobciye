@@ -13,6 +13,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import BuyCredits from "./pages/BuyCredits";
 import Admin from "./pages/Admin";
+import Learn from "./pages/Learn";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/buy-credits" element={<BuyCredits />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/learn/:courseId" element={<Learn />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

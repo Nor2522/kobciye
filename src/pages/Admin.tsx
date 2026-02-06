@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, Settings,
-  LogOut, ChevronLeft, Menu, X
+  LogOut, ChevronLeft, Menu, X, Video, Calendar, BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -17,8 +17,11 @@ import { AdminOverview } from '@/components/admin/AdminOverview';
 import { AdminCourses } from '@/components/admin/AdminCourses';
 import { AdminUsers } from '@/components/admin/AdminUsers';
 import { AdminEnrollments } from '@/components/admin/AdminEnrollments';
+import { AdminPlaylists } from '@/components/admin/AdminPlaylists';
+import { AdminBookings } from '@/components/admin/AdminBookings';
+import { AdminReports } from '@/components/admin/AdminReports';
 
-type TabType = 'overview' | 'courses' | 'users' | 'enrollments';
+type TabType = 'overview' | 'courses' | 'playlists' | 'users' | 'enrollments' | 'bookings' | 'reports';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -76,8 +79,11 @@ export default function Admin() {
   const navItems = [
     { id: 'overview' as TabType, label: language === 'en' ? 'Overview' : 'Guud ahaan', icon: LayoutDashboard },
     { id: 'courses' as TabType, label: language === 'en' ? 'Courses' : 'Koorsooyin', icon: BookOpen },
+    { id: 'playlists' as TabType, label: language === 'en' ? 'Content' : 'Nuxurka', icon: Video },
     { id: 'users' as TabType, label: language === 'en' ? 'Users' : 'Isticmaalayaasha', icon: Users },
     { id: 'enrollments' as TabType, label: language === 'en' ? 'Enrollments' : 'Diiwaangelinta', icon: GraduationCap },
+    { id: 'bookings' as TabType, label: language === 'en' ? 'Bookings' : 'Ballannimo', icon: Calendar },
+    { id: 'reports' as TabType, label: language === 'en' ? 'Reports' : 'Warbixino', icon: BarChart3 },
   ];
 
   return (
@@ -200,8 +206,11 @@ export default function Admin() {
           >
             {activeTab === 'overview' && <AdminOverview />}
             {activeTab === 'courses' && <AdminCourses />}
+            {activeTab === 'playlists' && <AdminPlaylists />}
             {activeTab === 'users' && <AdminUsers />}
             {activeTab === 'enrollments' && <AdminEnrollments />}
+            {activeTab === 'bookings' && <AdminBookings />}
+            {activeTab === 'reports' && <AdminReports />}
           </motion.div>
         </div>
       </main>

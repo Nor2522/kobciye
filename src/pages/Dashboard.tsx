@@ -425,6 +425,7 @@ export default function Dashboard() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.1 * index }}
+                          onClick={() => navigate(`/learn/${enrollment.course.id}`)}
                           className="flex items-center gap-4 p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer group"
                         >
                           <img
