@@ -68,25 +68,25 @@ export default function BuyCredits() {
 
     setIsProcessing(true);
 
-    // Simulate payment processing (in production, integrate with actual payment gateway)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
     try {
-      // Get current credits and add new ones
-      const { data: currentProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('user_id', user!.id)
-        .maybeSingle();
+      // Use secure server-side RPC function to process credit purchase
+      // This creates a transaction record and updates credits atomically
+      const { data, error } = await supabase.rpc('process_credit_purchase', {
+        _user_id: user!.id,
+        _package_id: pkg.id,
+        _credits: pkg.credits,
+        _amount: pkg.price,
+        _payment_method: selectedPayment,
+        _phone_number: ['evc', 'zaad', 'sahal'].includes(selectedPayment) ? phoneNumber : null
+      });
 
-      if (fetchError) throw fetchError;
+      if (error) throw error;
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ credits: (currentProfile?.credits || 0) + pkg.credits })
-        .eq('user_id', user!.id);
+      const result = data as { success: boolean; error?: string; new_balance?: number };
 
-      if (updateError) throw updateError;
+      if (!result.success) {
+        throw new Error(result.error || 'Purchase failed');
+      }
 
       toast({
         title: language === 'en' ? 'Success!' : 'Guul!',
@@ -97,6 +97,7 @@ export default function BuyCredits() {
 
       navigate('/dashboard');
     } catch (error) {
+      console.error('Purchase error:', error);
       toast({
         title: language === 'en' ? 'Error' : 'Khalad',
         description: language === 'en' ? 'Payment failed. Please try again.' : 'Lacag bixintu waa fashilantay. Fadlan mar kale isku day.',

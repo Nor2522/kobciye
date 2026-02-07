@@ -291,6 +291,48 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          credits: number
+          id: string
+          package_id: number
+          payment_method: string
+          phone_number: string | null
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          credits: number
+          id?: string
+          package_id: number
+          payment_method: string
+          phone_number?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          credits?: number
+          id?: string
+          package_id?: number
+          payment_method?: string
+          phone_number?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       transcoding_jobs: {
         Row: {
           completed_at: string | null
@@ -485,6 +527,17 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      process_credit_purchase: {
+        Args: {
+          _amount: number
+          _credits: number
+          _package_id: number
+          _payment_method: string
+          _phone_number?: string
+          _user_id: string
+        }
+        Returns: Json
       }
       update_video_progress: {
         Args: {
