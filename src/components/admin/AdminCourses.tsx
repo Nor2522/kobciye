@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit, Trash2, Eye, EyeOff, MoreHorizontal, Video } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, MoreHorizontal, Video, ListVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +38,9 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
+import { CourseTypeModal } from './CourseTypeModal';
 import type { Course } from '@/lib/courses';
 
 interface CourseFormData {
@@ -59,6 +61,7 @@ interface CourseFormData {
   video_thumbnail: string;
   is_online: boolean;
   is_published: boolean;
+  is_playlist: boolean;
 }
 
 const initialFormData: CourseFormData = {
@@ -79,6 +82,7 @@ const initialFormData: CourseFormData = {
   video_thumbnail: '',
   is_online: true,
   is_published: false,
+  is_playlist: false,
 };
 
 // Helper to extract YouTube video ID from various URL formats
@@ -97,10 +101,12 @@ function extractYouTubeId(url: string): string | null {
 export function AdminCourses() {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { isSuperAdmin } = useUserRole();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [typeModalOpen, setTypeModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState<CourseFormData>(initialFormData);
   const [saving, setSaving] = useState(false);
@@ -152,11 +158,26 @@ export function AdminCourses() {
         video_thumbnail: courseData.video_thumbnail || '',
         is_online: course.is_online,
         is_published: course.is_published,
+        is_playlist: courseData.is_playlist || false,
       });
+      setDialogOpen(true);
     } else {
-      setEditingCourse(null);
-      setFormData(initialFormData);
+      // For new courses - Super Admin gets type selection modal
+      if (isSuperAdmin()) {
+        setTypeModalOpen(true);
+      } else {
+        // Regular admin gets default single video course
+        setEditingCourse(null);
+        setFormData({ ...initialFormData, is_playlist: false });
+        setDialogOpen(true);
+      }
     }
+  };
+
+  const handleTypeSelect = (isPlaylist: boolean) => {
+    setTypeModalOpen(false);
+    setEditingCourse(null);
+    setFormData({ ...initialFormData, is_playlist: isPlaylist });
     setDialogOpen(true);
   };
 
@@ -310,7 +331,12 @@ export function AdminCourses() {
                           className="w-12 h-8 rounded object-cover"
                         />
                         <div>
-                          <p className="font-medium line-clamp-1">{course.title}</p>
+                          <div className="flex items-center gap-1">
+                            <p className="font-medium line-clamp-1">{course.title}</p>
+                            {(course as any).is_playlist && (
+                              <ListVideo className="w-3 h-3 text-accent shrink-0" />
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">{course.level}</p>
                         </div>
                       </div>
@@ -590,6 +616,13 @@ export function AdminCourses() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Course Type Modal for Super Admin */}
+      <CourseTypeModal
+        isOpen={typeModalOpen}
+        onClose={() => setTypeModalOpen(false)}
+        onSelect={handleTypeSelect}
+      />
     </div>
   );
 }

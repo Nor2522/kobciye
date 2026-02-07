@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           created_at: string
@@ -57,6 +84,7 @@ export type Database = {
           instructor_avatar: string | null
           instructor_name: string
           is_online: boolean | null
+          is_playlist: boolean
           is_published: boolean | null
           level: string | null
           level_so: string | null
@@ -82,6 +110,7 @@ export type Database = {
           instructor_avatar?: string | null
           instructor_name: string
           is_online?: boolean | null
+          is_playlist?: boolean
           is_published?: boolean | null
           level?: string | null
           level_so?: string | null
@@ -107,6 +136,7 @@ export type Database = {
           instructor_avatar?: string | null
           instructor_name?: string
           is_online?: boolean | null
+          is_playlist?: boolean
           is_published?: boolean | null
           level?: string | null
           level_so?: string | null
@@ -384,6 +414,8 @@ export type Database = {
           id: string
           is_completed: boolean
           last_position_seconds: number
+          last_watched_at: string | null
+          play_count: number
           updated_at: string
           user_id: string
           video_id: string
@@ -395,6 +427,8 @@ export type Database = {
           id?: string
           is_completed?: boolean
           last_position_seconds?: number
+          last_watched_at?: string | null
+          play_count?: number
           updated_at?: string
           user_id: string
           video_id: string
@@ -406,6 +440,8 @@ export type Database = {
           id?: string
           is_completed?: boolean
           last_position_seconds?: number
+          last_watched_at?: string | null
+          play_count?: number
           updated_at?: string
           user_id?: string
           video_id?: string
@@ -509,6 +545,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_course_access: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: Json
+      }
       enroll_with_credits: {
         Args: { _course_id: string; _user_id: string }
         Returns: Json

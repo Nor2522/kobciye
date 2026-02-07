@@ -36,6 +36,8 @@ export interface UserProgress {
   last_position_seconds: number;
   is_completed: boolean;
   completed_at?: string;
+  play_count: number;
+  last_watched_at: string;
   created_at: string;
   updated_at: string;
 }
