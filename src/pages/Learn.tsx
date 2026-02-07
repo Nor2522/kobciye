@@ -2,17 +2,17 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  ChevronLeft, ChevronRight, Play, Pause, Check, Lock, 
-  Menu, X, BookOpen, Clock, Award, List
+  ChevronLeft, ChevronRight, Play, Check, Lock, 
+  Menu, X, BookOpen, List, CreditCard, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useCourseAccess } from '@/hooks/useCourseAccess';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseVideoPlayer } from '@/components/courses/CourseVideoPlayer';
@@ -29,6 +29,7 @@ export default function Learn() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { user, loading: authLoading } = useAuth();
+  const { checkAccess, accessResult, loading: accessLoading } = useCourseAccess();
   const { toast } = useToast();
 
   const [course, setCourse] = useState<Course | null>(null);
@@ -39,15 +40,23 @@ export default function Learn() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedPlaylists, setExpandedPlaylists] = useState<Set<string>>(new Set());
 
+  // Check access when component mounts
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
       return;
     }
     if (courseId && user) {
+      checkAccess(courseId);
+    }
+  }, [courseId, user, authLoading, checkAccess]);
+
+  // Fetch course data only if access is granted
+  useEffect(() => {
+    if (accessResult?.allowed && courseId && user) {
       fetchCourseData();
     }
-  }, [courseId, user, authLoading]);
+  }, [accessResult, courseId, user]);
 
   async function fetchCourseData() {
     try {
@@ -163,13 +172,97 @@ export default function Learn() {
   const currentVideoIndex = playlists.flatMap(p => p.videos).findIndex(v => v.id === currentVideo?.id);
   const totalVideos = playlists.reduce((sum, p) => sum + p.videos.length, 0);
 
-  if (loading || authLoading) {
+  // Loading state
+  if (loading || authLoading || accessLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">{language === 'en' ? 'Loading course...' : 'Waxaa la soo gelayaa...'}</p>
         </div>
+      </div>
+    );
+  }
+
+  // Access denied - show buy credits CTA
+  if (accessResult && !accessResult.allowed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full"
+        >
+          <Card className="border-0 shadow-xl">
+            <CardContent className="p-8 text-center">
+              {accessResult.reason === 'not_enrolled' ? (
+                <>
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center">
+                    <Lock className="w-10 h-10 text-accent" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-3">
+                    {language === 'en' ? 'Course Locked' : 'Koorsada Waa La Xidhay'}
+                  </h2>
+                  <p className="text-muted-foreground mb-6">
+                    {language === 'en' 
+                      ? `You need ${accessResult.required_credits} credits to access this course.`
+                      : `Waxaad u baahan tahay ${accessResult.required_credits} credits si aad u hesho koorsadan.`}
+                  </p>
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => navigate('/buy-credits')} 
+                      className="w-full gap-2 bg-accent hover:bg-accent/90"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      {language === 'en' ? 'Buy Credits' : 'Iibso Credits'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/dashboard')}
+                      className="w-full"
+                    >
+                      {language === 'en' ? 'Go to Dashboard' : 'Tag Dashboard'}
+                    </Button>
+                  </div>
+                </>
+              ) : accessResult.reason === 'course_not_found' ? (
+                <>
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <AlertCircle className="w-10 h-10 text-destructive" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-3">
+                    {language === 'en' ? 'Course Not Found' : 'Koorso Lama Helin'}
+                  </h2>
+                  <p className="text-muted-foreground mb-6">
+                    {language === 'en' 
+                      ? 'This course may have been removed or is not available.'
+                      : 'Koorsadan waxaa laga yaabaa in la tirtiray ama aan la heli karin.'}
+                  </p>
+                  <Button onClick={() => navigate('/courses')} className="w-full">
+                    {language === 'en' ? 'Browse Courses' : 'Raadi Koorsooyin'}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-orange-500/10 flex items-center justify-center">
+                    <AlertCircle className="w-10 h-10 text-orange-500" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-3">
+                    {language === 'en' ? 'Access Denied' : 'Mamnuuc'}
+                  </h2>
+                  <p className="text-muted-foreground mb-6">
+                    {language === 'en' 
+                      ? 'You do not have permission to access this course.'
+                      : 'Ma haysatid ogolaanshaha koorsadan.'}
+                  </p>
+                  <Button onClick={() => navigate('/dashboard')} className="w-full">
+                    {language === 'en' ? 'Go to Dashboard' : 'Tag Dashboard'}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }

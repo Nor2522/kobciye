@@ -20,15 +20,16 @@ import { AdminEnrollments } from '@/components/admin/AdminEnrollments';
 import { AdminPlaylists } from '@/components/admin/AdminPlaylists';
 import { AdminBookings } from '@/components/admin/AdminBookings';
 import { AdminReports } from '@/components/admin/AdminReports';
+import { AdminSettings } from '@/components/admin/AdminSettings';
 
-type TabType = 'overview' | 'courses' | 'playlists' | 'users' | 'enrollments' | 'bookings' | 'reports';
+type TabType = 'overview' | 'courses' | 'playlists' | 'users' | 'enrollments' | 'bookings' | 'reports' | 'settings';
 
 export default function Admin() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { language } = useLanguage();
   const { user, loading: authLoading, signOut } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
+  const { isAdmin, isSuperAdmin, loading: roleLoading } = useUserRole();
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -84,6 +85,8 @@ export default function Admin() {
     { id: 'enrollments' as TabType, label: language === 'en' ? 'Enrollments' : 'Diiwaangelinta', icon: GraduationCap },
     { id: 'bookings' as TabType, label: language === 'en' ? 'Bookings' : 'Ballannimo', icon: Calendar },
     { id: 'reports' as TabType, label: language === 'en' ? 'Reports' : 'Warbixino', icon: BarChart3 },
+    // Settings only for super_admin
+    ...(isSuperAdmin() ? [{ id: 'settings' as TabType, label: language === 'en' ? 'Settings' : 'Qaabeynta', icon: Settings }] : []),
   ];
 
   return (
@@ -185,15 +188,11 @@ export default function Admin() {
               <Menu className="w-5 h-5" />
             </Button>
             <h2 className="text-xl font-semibold">
-              {navItems.find(item => item.id === activeTab)?.label}
+              {navItems.find(item => item.id === activeTab)?.label || (language === 'en' ? 'Settings' : 'Qaabeynta')}
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              {language === 'en' ? 'Settings' : 'Qaabeynta'}
-            </Button>
-          </div>
+          {/* Settings moved to sidebar for super_admin */}
+          <div />
         </header>
 
         {/* Content Area */}
@@ -211,6 +210,7 @@ export default function Admin() {
             {activeTab === 'enrollments' && <AdminEnrollments />}
             {activeTab === 'bookings' && <AdminBookings />}
             {activeTab === 'reports' && <AdminReports />}
+            {activeTab === 'settings' && isSuperAdmin() && <AdminSettings />}
           </motion.div>
         </div>
       </main>
