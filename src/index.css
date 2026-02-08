@@ -3,106 +3,112 @@
 @tailwind utilities;
 
 /* Kobciye International Design System
-   Primary: Deep Blue (#003366) 
-   Accent: Emerald Green
+   Inspired by Dugsiiye - Modern LMS aesthetic
+   Primary: Dark Slate/Teal (#0f172a to #1e293b)
+   Accent: Emerald Green (#10b981)
    All colors in HSL format
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 50% 10%;
+    /* Light mode - clean white with subtle blue undertones */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 210 50% 10%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 50% 10%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Deep Professional Blue */
-    --primary: 210 100% 20%;
+    /* Primary - Deep Slate Blue */
+    --primary: 222 47% 11%;
     --primary-foreground: 0 0% 100%;
 
-    /* Light gray for secondary */
+    /* Secondary - Light gray */
     --secondary: 210 20% 96%;
-    --secondary-foreground: 210 50% 10%;
+    --secondary-foreground: 222 47% 11%;
 
     --muted: 210 20% 96%;
-    --muted-foreground: 210 10% 45%;
+    --muted-foreground: 215 16% 47%;
 
-    /* Accent Green for Kobciye branding */
-    --accent: 142 76% 36%;
+    /* Accent - Emerald Green (Dugsiiye style) */
+    --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
-    --ring: 210 100% 20%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 160 84% 39%;
 
     --radius: 0.75rem;
 
     /* Sidebar */
-    --sidebar-background: 210 100% 20%;
+    --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 100% 25%;
+    --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 100% 25%;
-    --sidebar-ring: 142 76% 36%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 160 84% 39%;
 
     /* Custom Kobciye tokens */
-    --kobciye-blue: 210 100% 20%;
-    --kobciye-blue-light: 210 80% 35%;
-    --kobciye-green: 142 76% 36%;
-    --kobciye-green-light: 142 60% 50%;
+    --kobciye-dark: 222 47% 11%;
+    --kobciye-slate: 217 33% 17%;
+    --kobciye-green: 160 84% 39%;
+    --kobciye-green-light: 158 64% 52%;
     --kobciye-gold: 45 93% 47%;
   }
 
   .dark {
-    --background: 210 50% 5%;
-    --foreground: 0 0% 95%;
+    /* Dark mode - Dugsiiye inspired dark slate/teal */
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
 
-    --card: 210 50% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 217 33% 12%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 210 50% 8%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 217 33% 12%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 210 80% 50%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary - Lighter for dark mode contrast */
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 210 30% 15%;
-    --secondary-foreground: 0 0% 95%;
+    /* Secondary */
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 30% 15%;
-    --muted-foreground: 210 15% 60%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 142 70% 45%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Brighter emerald for dark mode */
+    --accent: 160 84% 45%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 95%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 210 30% 20%;
-    --input: 210 30% 20%;
-    --ring: 210 80% 50%;
+    --border: 217 33% 22%;
+    --input: 217 33% 17%;
+    --ring: 160 84% 45%;
 
-    --sidebar-background: 210 50% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 142 70% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 30% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 210 30% 20%;
-    --sidebar-ring: 142 70% 45%;
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 160 84% 45%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 12%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 160 84% 45%;
 
-    --kobciye-blue: 210 80% 50%;
-    --kobciye-blue-light: 210 70% 60%;
-    --kobciye-green: 142 70% 45%;
-    --kobciye-green-light: 142 60% 55%;
+    --kobciye-dark: 222 47% 8%;
+    --kobciye-slate: 217 33% 12%;
+    --kobciye-green: 160 84% 45%;
+    --kobciye-green-light: 158 64% 56%;
     --kobciye-gold: 45 90% 55%;
   }
 }
@@ -124,11 +130,11 @@
 
 @layer components {
   .glass {
-    @apply bg-white/80 dark:bg-background/80 backdrop-blur-lg border border-white/20 dark:border-white/10;
+    @apply bg-white/90 dark:bg-card/95 backdrop-blur-xl border border-border/50 shadow-sm;
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-accent to-kobciye-green-light bg-clip-text text-transparent;
   }
 
   .btn-primary {
@@ -146,22 +152,38 @@
   .container-custom {
     @apply max-w-7xl mx-auto;
   }
+
+  /* Course card styling */
+  .course-card {
+    @apply bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-accent/30;
+  }
+
+  /* Section header with number badge */
+  .section-badge {
+    @apply w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-sm font-bold;
+  }
+
+  /* Locked video item */
+  .video-item-locked {
+    @apply flex items-center gap-3 p-3 rounded-lg bg-secondary/50 text-muted-foreground cursor-not-allowed;
+  }
+
+  /* Playable video item */
+  .video-item-playable {
+    @apply flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors cursor-pointer;
+  }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - refined */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-muted;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/30 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/50;
+  @apply bg-border rounded-full hover:bg-muted-foreground/30 transition-colors;
 }

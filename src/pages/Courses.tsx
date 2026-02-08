@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Grid, List, Clock, User, Star } from 'lucide-react';
+import { Search, Filter, Grid, List, Clock, User, Star, Play, Lock, CreditCard } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,6 +30,7 @@ export default function Courses() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -41,6 +42,12 @@ export default function Courses() {
   useEffect(() => {
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchEnrollments();
+    }
+  }, [user]);
 
   async function fetchCourses() {
     try {
@@ -56,6 +63,21 @@ export default function Courses() {
       console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchEnrollments() {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('course_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setEnrolledCourseIds(new Set(data?.map(e => e.course_id) || []));
+    } catch (error) {
+      console.error('Error fetching enrollments:', error);
     }
   }
 
@@ -82,6 +104,7 @@ export default function Courses() {
   };
 
   const handleEnrollmentSuccess = () => {
+    fetchEnrollments(); // Refresh enrollments
     toast({
       title: language === 'en' ? 'Success!' : 'Guul!',
       description: language === 'en' 
@@ -90,12 +113,14 @@ export default function Courses() {
     });
   };
 
+  const isEnrolled = (courseId: string) => enrolledCourseIds.has(courseId);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main className="flex-1 pt-20">
         {/* Header */}
-        <section className="bg-gradient-to-br from-primary to-primary/80 text-white py-16">
+        <section className="bg-gradient-to-br from-kobciye-dark to-kobciye-slate dark:from-background dark:to-card text-white py-16">
           <div className="container-custom px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -138,7 +163,7 @@ export default function Courses() {
                     variant={selectedCategory === cat.en ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedCategory(cat.en)}
-                    className={selectedCategory === cat.en ? 'bg-accent hover:bg-accent/90' : ''}
+                    className={selectedCategory === cat.en ? 'bg-accent hover:bg-accent/90 text-accent-foreground' : ''}
                   >
                     {language === 'en' ? cat.en : cat.so}
                   </Button>
@@ -196,6 +221,7 @@ export default function Courses() {
                     <CourseCard 
                       course={course} 
                       viewMode={viewMode}
+                      isEnrolled={isEnrolled(course.id)}
                       onViewDetails={() => handleViewDetails(course)}
                     />
                   </motion.div>
@@ -212,6 +238,7 @@ export default function Courses() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onEnroll={handleEnroll}
+        isEnrolled={selectedCourse ? isEnrolled(selectedCourse.id) : false}
       />
 
       <EnrollmentModal
@@ -227,18 +254,24 @@ export default function Courses() {
 interface CourseCardProps {
   course: Course;
   viewMode: 'grid' | 'list';
+  isEnrolled: boolean;
   onViewDetails: () => void;
 }
 
-function CourseCard({ course, viewMode, onViewDetails }: CourseCardProps) {
+function CourseCard({ course, viewMode, isEnrolled, onViewDetails }: CourseCardProps) {
   const { language, t } = useLanguage();
+  const navigate = useNavigate();
   const title = language === 'en' ? course.title : (course.title_so || course.title);
   const category = language === 'en' ? course.category : (course.category_so || course.category);
   const level = language === 'en' ? course.level : (course.level_so || course.level);
 
+  const handleContinue = () => {
+    navigate(`/learn/${course.id}`);
+  };
+
   if (viewMode === 'list') {
     return (
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow course-card">
         <div className="flex flex-col sm:flex-row">
           <div className="relative sm:w-48 h-32 sm:h-auto">
             <img
@@ -246,13 +279,20 @@ function CourseCard({ course, viewMode, onViewDetails }: CourseCardProps) {
               alt={title}
               className="w-full h-full object-cover"
             />
-            <Badge className={`${getCategoryColor(course.category)} text-white border-0 absolute top-2 left-2`}>
+            <Badge className="bg-accent text-accent-foreground border-0 absolute top-2 left-2">
               {category}
             </Badge>
+            {isEnrolled && (
+              <div className="absolute inset-0 bg-accent/10 flex items-center justify-center">
+                <Badge className="bg-accent text-accent-foreground">
+                  {language === 'en' ? 'Enrolled' : 'Is Diiwaangashan'}
+                </Badge>
+              </div>
+            )}
           </div>
           <CardContent className="flex-1 p-4 flex flex-col justify-between">
             <div>
-              <h3 className="font-bold text-lg mb-2">{title}</h3>
+              <h3 className="font-bold text-lg mb-2 text-card-foreground">{title}</h3>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <User className="w-4 h-4" />
@@ -269,9 +309,26 @@ function CourseCard({ course, viewMode, onViewDetails }: CourseCardProps) {
               </div>
             </div>
             <div className="flex items-center justify-between mt-4">
-              <span className="text-xl font-bold text-accent">${course.price}</span>
-              <Button onClick={onViewDetails} variant="outline">
-                {t('courses.view_details')}
+              {isEnrolled ? (
+                <Badge variant="outline" className="text-accent border-accent">
+                  <Play className="w-3 h-3 mr-1" />
+                  {language === 'en' ? 'Continue' : 'Sii Wad'}
+                </Badge>
+              ) : (
+                <div className="flex items-center gap-1 text-accent font-bold">
+                  <CreditCard className="w-4 h-4" />
+                  <span>{course.price} credits</span>
+                </div>
+              )}
+              <Button onClick={isEnrolled ? handleContinue : onViewDetails} variant="outline" className="gap-2">
+                {isEnrolled ? (
+                  <>
+                    <Play className="w-4 h-4" />
+                    {language === 'en' ? 'Continue' : 'Sii Wad'}
+                  </>
+                ) : (
+                  t('courses.view_details')
+                )}
               </Button>
             </div>
           </CardContent>
@@ -281,49 +338,96 @@ function CourseCard({ course, viewMode, onViewDetails }: CourseCardProps) {
   }
 
   return (
-    <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-card h-full">
+    <Card className="group overflow-hidden course-card h-full flex flex-col">
       <div className="relative overflow-hidden">
         <img
           src={course.image_url || '/placeholder.svg'}
           alt={title}
-          className="w-full h-48 object-cover transform group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
         />
-        <Badge className={`${getCategoryColor(course.category)} text-white border-0 absolute top-4 left-4`}>
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Category badge */}
+        <Badge className="bg-accent text-accent-foreground border-0 absolute top-3 left-3">
           {category}
         </Badge>
-        <div className="absolute top-4 right-4 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full">
-          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-          <span className="text-sm text-white font-medium">{course.rating}</span>
+        
+        {/* Rating */}
+        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full">
+          <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+          <span className="text-xs font-medium text-foreground">{course.rating}</span>
         </div>
-        {!course.is_online && (
-          <Badge className="absolute bottom-4 left-4 bg-orange-500 text-white border-0">
-            {language === 'en' ? 'On Campus' : 'Kampaska'}
-          </Badge>
+
+        {/* Enrolled badge */}
+        {isEnrolled && (
+          <div className="absolute bottom-3 left-3">
+            <Badge className="bg-accent text-accent-foreground gap-1">
+              <Play className="w-3 h-3" />
+              {language === 'en' ? 'Enrolled' : 'Is Diiwaangashan'}
+            </Badge>
+          </div>
+        )}
+
+        {/* Lock icon for non-enrolled */}
+        {!isEnrolled && course.price && course.price > 0 && (
+          <div className="absolute bottom-3 right-3">
+            <div className="bg-background/90 backdrop-blur-sm p-1.5 rounded-full">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </div>
         )}
       </div>
-      <CardContent className="p-5 space-y-4">
-        <h3 className="text-lg font-bold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors">
+
+      <CardContent className="p-5 flex-1 flex flex-col">
+        <h3 className="text-lg font-bold text-card-foreground line-clamp-2 group-hover:text-accent transition-colors mb-2">
           {title}
         </h3>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <User className="w-4 h-4" />
-          <span>{course.instructor_name}</span>
+        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+          <img 
+            src={course.instructor_avatar || '/placeholder.svg'} 
+            alt={course.instructor_name}
+            className="w-5 h-5 rounded-full object-cover"
+          />
+          <span className="truncate">{course.instructor_name}</span>
         </div>
-        <div className="flex items-center justify-between text-sm">
+
+        <div className="flex items-center justify-between text-sm mb-4">
           <span className="flex items-center gap-1 text-muted-foreground">
             <Clock className="w-4 h-4" />
             {course.duration}
           </span>
-          <Badge variant="secondary">{level}</Badge>
+          <Badge variant="secondary" className="text-xs">{level}</Badge>
         </div>
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <span className="text-xl font-bold text-accent">${course.price}</span>
+
+        <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
+          {isEnrolled ? (
+            <Badge variant="outline" className="text-accent border-accent bg-accent/10">
+              {language === 'en' ? 'Access Granted' : 'Waa Laguu Ogolaaday'}
+            </Badge>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4 text-accent" />
+              <span className="text-lg font-bold text-foreground">{course.price}</span>
+              <span className="text-xs text-muted-foreground">credits</span>
+            </div>
+          )}
+          
           <Button 
-            variant="link" 
-            className="p-0 h-auto text-primary hover:text-primary/80"
-            onClick={onViewDetails}
+            variant={isEnrolled ? "default" : "ghost"}
+            size="sm"
+            className={isEnrolled ? "bg-accent hover:bg-accent/90 text-accent-foreground gap-1" : "text-accent hover:text-accent/80 p-0 h-auto"}
+            onClick={isEnrolled ? handleContinue : onViewDetails}
           >
-            {t('courses.view_details')}
+            {isEnrolled ? (
+              <>
+                <Play className="w-3.5 h-3.5" />
+                {language === 'en' ? 'Continue' : 'Sii Wad'}
+              </>
+            ) : (
+              t('courses.view_details')
+            )}
           </Button>
         </div>
       </CardContent>

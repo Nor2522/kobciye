@@ -51,12 +51,12 @@ export function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-kobciye-dark to-accent dark:from-accent dark:to-kobciye-green-light flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-primary dark:text-primary-foreground">
+              <span className="text-xl font-bold text-foreground">
                 Kobciye
               </span>
               <span className="text-xs text-muted-foreground -mt-1">
