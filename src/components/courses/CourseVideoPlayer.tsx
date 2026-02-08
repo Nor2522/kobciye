@@ -86,6 +86,9 @@ export function CourseVideoPlayer({
     return null;
   }
 
+  // Check if this is a virtual video (course-level video without real video_id)
+  const isVirtualVideo = videoId?.startsWith('course-video-');
+
   if (videoSource === 'youtube') {
     const ytVideoId = extractYouTubeId(videoUrl);
     if (!ytVideoId) return null;
