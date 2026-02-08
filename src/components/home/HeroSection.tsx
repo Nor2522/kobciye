@@ -20,9 +20,9 @@ export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-secondary/50 dark:from-background dark:via-background dark:to-primary/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-background dark:from-kobciye-dark dark:via-background dark:to-kobciye-slate/30" />
       <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-kobciye-green/10 rounded-full blur-3xl" />
 
       <div className="container-custom relative z-10 section-padding">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">

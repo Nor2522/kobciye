@@ -61,8 +61,8 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         kobciye: {
-          blue: "hsl(var(--kobciye-blue))",
-          "blue-light": "hsl(var(--kobciye-blue-light))",
+          dark: "hsl(var(--kobciye-dark))",
+          slate: "hsl(var(--kobciye-slate))",
           green: "hsl(var(--kobciye-green))",
           "green-light": "hsl(var(--kobciye-green-light))",
           gold: "hsl(var(--kobciye-gold))",

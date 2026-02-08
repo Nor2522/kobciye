@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight, Clock, User, Star } from 'lucide-react';
+import { ArrowRight, Clock, User, Star, CreditCard, Lock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,52 +37,70 @@ function CourseCard({
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-card h-full">
+      <Card className="group overflow-hidden course-card h-full flex flex-col">
         <div className="relative overflow-hidden">
           <img
             src={course.image_url || '/placeholder.svg'}
             alt={title}
-            className="w-full h-48 object-cover transform group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute top-4 left-4">
-            <Badge className={`${getCategoryColor(course.category)} text-white border-0`}>
-              {category}
-            </Badge>
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Category badge */}
+          <Badge className="bg-accent text-accent-foreground border-0 absolute top-3 left-3">
+            {category}
+          </Badge>
+          
+          {/* Rating */}
+          <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/90 backdrop-blur-sm px-2 py-1 rounded-full">
+            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+            <span className="text-xs font-medium text-foreground">{course.rating}</span>
           </div>
-          <div className="absolute top-4 right-4 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-            <span className="text-sm text-white font-medium">{course.rating}</span>
-          </div>
+
+          {/* Lock icon */}
+          {course.price && course.price > 0 && (
+            <div className="absolute bottom-3 right-3">
+              <div className="bg-background/90 backdrop-blur-sm p-1.5 rounded-full">
+                <Lock className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </div>
+          )}
         </div>
-        <CardContent className="p-5 space-y-4">
-          <h3 className="text-lg font-bold text-card-foreground line-clamp-2 group-hover:text-primary transition-colors">
+        <CardContent className="p-5 flex-1 flex flex-col">
+          <h3 className="text-lg font-bold text-card-foreground line-clamp-2 group-hover:text-accent transition-colors mb-2">
             {title}
           </h3>
 
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <User className="w-4 h-4" />
-              <span>{course.instructor_name}</span>
-            </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+            <img 
+              src={course.instructor_avatar || '/placeholder.svg'} 
+              alt={course.instructor_name}
+              className="w-5 h-5 rounded-full object-cover"
+            />
+            <span className="truncate">{course.instructor_name}</span>
           </div>
 
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between text-sm mb-4">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Clock className="w-4 h-4" />
               <span>{course.duration}</span>
             </div>
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="text-xs">
               {level}
             </Badge>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <span className="text-sm text-muted-foreground">
-              {course.students_count.toLocaleString()} {language === 'en' ? 'students' : 'arday'}
-            </span>
+          <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4 text-accent" />
+              <span className="text-lg font-bold text-foreground">{course.price}</span>
+              <span className="text-xs text-muted-foreground">credits</span>
+            </div>
             <Button 
-              variant="link" 
-              className="p-0 h-auto text-accent hover:text-accent/80"
+              variant="ghost" 
+              size="sm"
+              className="text-accent hover:text-accent/80 p-0 h-auto"
               onClick={onViewDetails}
             >
               {t('courses.view_details')}
@@ -191,8 +209,7 @@ export function CoursesSection() {
         >
           <Button 
             size="lg" 
-            variant="outline" 
-            className="group"
+            className="group bg-accent hover:bg-accent/90 text-accent-foreground"
             onClick={() => navigate('/courses')}
           >
             {t('courses.explore')}
