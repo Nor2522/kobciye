@@ -81,52 +81,95 @@ export default function Learn() {
 
       if (playlistsError) throw playlistsError;
 
-      // Fetch videos and user progress
-      const playlistsWithVideos = await Promise.all(
-        (playlistsData || []).map(async (playlist) => {
-          const { data: videos } = await supabase
-            .from('videos')
-            .select('*')
-            .eq('playlist_id', playlist.id)
-            .order('order_index');
+      // If no playlists exist but course has a video_url, create a virtual playlist
+      if ((!playlistsData || playlistsData.length === 0) && courseData.video_url) {
+        // Single video course - create virtual playlist and video
+        const virtualVideo: Video & { progress?: UserProgress } = {
+          id: `course-video-${courseData.id}`,
+          playlist_id: `virtual-playlist-${courseData.id}`,
+          title: language === 'so' && courseData.title_so ? courseData.title_so : courseData.title,
+          description: language === 'so' && courseData.description_so ? courseData.description_so : courseData.description,
+          video_url: courseData.video_url,
+          video_source: courseData.video_source || 'youtube',
+          thumbnail_url: courseData.video_thumbnail || courseData.image_url,
+          order_index: 0,
+          is_free: false,
+          duration_seconds: null,
+          created_at: courseData.created_at,
+          updated_at: courseData.updated_at,
+        };
 
-          // Get progress for each video
-          const videosWithProgress = await Promise.all(
-            (videos || []).map(async (video) => {
-              const { data: progress } = await supabase
-                .from('user_progress')
-                .select('*')
-                .eq('user_id', user!.id)
-                .eq('video_id', video.id)
-                .maybeSingle();
-              return { ...video, progress: progress || undefined };
-            })
-          );
+        const virtualPlaylist: PlaylistWithVideos = {
+          id: `virtual-playlist-${courseData.id}`,
+          course_id: courseData.id,
+          title: language === 'en' ? 'Course Content' : 'Qeybaha Koorsada',
+          description: null,
+          order_index: 0,
+          created_at: courseData.created_at,
+          updated_at: courseData.updated_at,
+          videos: [virtualVideo],
+        };
 
-          return { ...playlist, videos: videosWithProgress } as PlaylistWithVideos;
-        })
-      );
+        setPlaylists([virtualPlaylist]);
+        setExpandedPlaylists(new Set([virtualPlaylist.id]));
+        setCurrentVideo(virtualVideo);
 
-      setPlaylists(playlistsWithVideos);
+        // For virtual videos, we can't track progress the same way
+        // Set a basic course progress
+        setCourseProgress({
+          total_videos: 1,
+          completed_videos: 0,
+          progress_percentage: 0,
+          is_completed: false,
+        });
+      } else {
+        // Playlist course - fetch videos and user progress
+        const playlistsWithVideos = await Promise.all(
+          (playlistsData || []).map(async (playlist) => {
+            const { data: videos } = await supabase
+              .from('videos')
+              .select('*')
+              .eq('playlist_id', playlist.id)
+              .order('order_index');
 
-      // Expand first playlist and set first video
-      if (playlistsWithVideos.length > 0) {
-        setExpandedPlaylists(new Set([playlistsWithVideos[0].id]));
-        if (playlistsWithVideos[0].videos.length > 0) {
-          // Find first unwatched video or first video
-          const allVideos = playlistsWithVideos.flatMap(p => p.videos);
-          const firstUnwatched = allVideos.find(v => !v.progress?.is_completed);
-          setCurrentVideo(firstUnwatched || allVideos[0]);
+            // Get progress for each video
+            const videosWithProgress = await Promise.all(
+              (videos || []).map(async (video) => {
+                const { data: progress } = await supabase
+                  .from('user_progress')
+                  .select('*')
+                  .eq('user_id', user!.id)
+                  .eq('video_id', video.id)
+                  .maybeSingle();
+                return { ...video, progress: progress || undefined };
+              })
+            );
+
+            return { ...playlist, videos: videosWithProgress } as PlaylistWithVideos;
+          })
+        );
+
+        setPlaylists(playlistsWithVideos);
+
+        // Expand first playlist and set first video
+        if (playlistsWithVideos.length > 0) {
+          setExpandedPlaylists(new Set([playlistsWithVideos[0].id]));
+          if (playlistsWithVideos[0].videos.length > 0) {
+            // Find first unwatched video or first video
+            const allVideos = playlistsWithVideos.flatMap(p => p.videos);
+            const firstUnwatched = allVideos.find(v => !v.progress?.is_completed);
+            setCurrentVideo(firstUnwatched || allVideos[0]);
+          }
         }
-      }
 
-      // Fetch course progress
-      const { data: progressData } = await supabase.rpc('get_course_progress', {
-        _user_id: user!.id,
-        _course_id: courseId!,
-      });
-      if (progressData) {
-        setCourseProgress(progressData as unknown as CourseProgress);
+        // Fetch course progress
+        const { data: progressData } = await supabase.rpc('get_course_progress', {
+          _user_id: user!.id,
+          _course_id: courseId!,
+        });
+        if (progressData) {
+          setCourseProgress(progressData as unknown as CourseProgress);
+        }
       }
     } catch (error) {
       console.error('Error fetching course data:', error);
